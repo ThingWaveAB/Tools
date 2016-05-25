@@ -68,10 +68,12 @@ public abstract class CoapObserver {
     
     public void stopObserver() {
         
-        System.out.println("Stoping to observe "+coapClient.getURI());
-        if (relation!=null) relation.reactiveCancel();
+        System.out.println("Stopping to observe "+coapClient.getURI());
+        if (relation!=null)
+          relation.reactiveCancel();
     }
     
     abstract public void incomingData(CoapResponse response);
     abstract public void error();
 }
+
