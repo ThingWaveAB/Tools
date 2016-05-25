@@ -37,10 +37,10 @@ import org.eclipse.californium.core.CoapResponse;
  */
 public class Main {
     public static void main(String[] args) {
-        System.out.println("\nThingWave - CoAP observer client v0.0.1\n");
+        System.out.println("\nThingWave - CoAP observer client v0.0.2\n");
         
         if (args.length != 1) {
-            System.out.println("Usage: ObserverCoAPclient.jar [endPoint]\nExample: ObserverCoAPclient.jar coap://localhots/observable\n");
+            System.out.println("Usage: ObserverCoAPclient.jar [endPoint]\nExample: ObserverCoAPclient.jar coap://localhost/observable\n");
             System.exit(1);
         }
         
@@ -66,7 +66,7 @@ public class Main {
                 @Override
                 public void run() {
                     coapObserver.stopObserver();
-                    System.out.println("\n\nThanks for using our services.\nThingWave (www.thingwave.eu)\n\n");
+                    System.out.println("\n\nThanks for using our services.\nThingWave AB (www.thingwave.eu)\n\n");
                 }
             }
         );
