@@ -30,57 +30,94 @@ import java.util.logging.Logger;
 import static javafx.util.Duration.millis;
 import org.eclipse.californium.core.CoapResponse;
 
+import java.io.ByteArrayInputStream;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.DocumentBuilder;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Node;
+import org.w3c.dom.Element;
+
+import org.json.simple.JSONObject;
+import org.json.simple.JSONArray;
+import org.json.simple.parser.ParseException;
+import org.json.simple.parser.JSONParser;
 
 /**
  *
  * @author Pablo Puñal Pereira <pablo.punal@thingwave.eu>
  */
 public class Main {
-    public static void main(String[] args) {
-        System.out.println("\nThingWave - CoAP observer client v0.0.2\n");
-        
-        if (args.length != 1) {
-            System.out.println("Usage: ObserverCoAPclient.jar [endPoint]\nExample: ObserverCoAPclient.jar coap://localhost/observable\n");
-            System.exit(1);
-        }
-        
-        // Define a new CoapObserver with the pased uri
-        CoapObserver coapObserver = new CoapObserver(args[0]) {
-            @Override
-            public void incomingData(CoapResponse response) {
-                // Print directly on the screen the data
-                System.out.println((new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date(System.currentTimeMillis())))
-                        +" ["+response.getOptions().getContentFormat()+"]"+" ("+response.getCode()+") => "
-                        +response.getResponseText());
-            }
-            @Override
-            public void error() {
-                System.out.println((new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date(System.currentTimeMillis())))+
-                        "Error/Expired Observer");
-            }
-        };
-        
-        // To execute if exit
-        Runtime.getRuntime().addShutdownHook(
-            new Thread() {
-                @Override
-                public void run() {
-                    coapObserver.stopObserver();
-                    System.out.println("\n\nThanks for using our services.\nThingWave AB (www.thingwave.eu)\n\n");
-                }
-            }
-        );
-        
-        // Start to Observe
-        coapObserver.startObserver();
-                
-        while (true) { // Do nothing
-            try {
-                Thread.sleep(10000);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        
+  public static void main(String[] args) {
+    System.out.println("\nThingWave - CoAP observer client v0.0.2\n");
+
+    if (args.length != 1) {
+      System.out.println("Usage: ObserverCoAPclient.jar [endPoint]\nExample: ObserverCoAPclient.jar coap://localhost/observable\n");
+      System.exit(1);
     }
+
+    // Define a new CoapObserver with the pased uri
+    CoapObserver coapObserver = new CoapObserver(args[0]) {
+      @Override
+	public void incomingData(CoapResponse response) {
+	  // Print directly on the screen the data
+	  System.out.println((new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date(System.currentTimeMillis())))
+	      +" ["+response.getOptions().getContentFormat()+"]"+" ("+response.getCode()+") => "
+	      +response.getResponseText());
+
+	  switch(response.getOptions().getContentFormat()) {
+	    case 41:
+
+	      try {
+		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+		Document doc = dBuilder.parse(new ByteArrayInputStream(response.getResponseText().getBytes()));
+
+		doc.getDocumentElement().normalize();
+
+		//System.out.println("Root element :" + doc.getDocumentElement().getNodeName());
+	      } catch (Exception e) {
+	      }
+            case 50:
+              JSONParser parser = new JSONParser();
+
+	      try {
+		Object obj = parser.parse(response.getResponseText());
+		JSONArray array = (JSONArray)obj;
+	      } catch (ParseException e) {
+	      }
+            break;
+	    default:
+	  }
+	}
+      @Override
+	public void error() {
+	  System.out.println((new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date(System.currentTimeMillis())))+
+	      "Error/Expired Observer");
+	}
+    };
+
+    // To execute if exit
+    Runtime.getRuntime().addShutdownHook(
+	new Thread() {
+	@Override
+	public void run() {
+	coapObserver.stopObserver();
+	System.out.println("\n\nThanks for using our services.\nThingWave AB (www.thingwave.eu)\n\n");
+	}
+	}
+	);
+
+    // Start to Observe
+    coapObserver.startObserver();
+
+    while (true) { // Do nothing
+      try {
+	Thread.sleep(10000);
+      } catch (InterruptedException ex) {
+	Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+      }
+    }
+
+  }
 }
